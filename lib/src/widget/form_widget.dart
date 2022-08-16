@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:intl/intl.dart';
-import 'package:platillos/src/pages/home_page.dart';
 import 'package:platillos/src/pages/listado_page.dart';
 import 'package:platillos/src/providers/task_provider.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +15,7 @@ class formulario extends StatefulWidget {
 }
 
 enum TareaCompletada { incompleta, completada }
+
 
 class _form extends State<formulario> {
   String usuario;
@@ -69,7 +69,7 @@ class _form extends State<formulario> {
         padding: const EdgeInsets.all(10),
         child: ListView(
           children: <Widget>[
-            Container(
+            if(widget.login)Container(
               padding: const EdgeInsets.all(10),
               child: TextField(
                 controller: nameController,
@@ -161,19 +161,20 @@ class _form extends State<formulario> {
                 padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                 child: ElevatedButton(
                   child: const Text('Crear'),
-                  onPressed: () {
+                  onPressed: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    if(widget.login){
+                      SharedPreferences.setMockInitialValues({});
+                      setState(() {
+                        prefs.setString('usuario', nameController.text);
+                      });
+                    }else nameController.text = (prefs.getString('usuario'));
                     crearUsuario(nameController.text, titleController.text, tarea.name, dateinput.text, commentsController.text, descriptionController.text, tagController.text);
-                    if(!widget.login) SchedulerBinding.instance.addPostFrameCallback((_) {
+                    SchedulerBinding.instance.addPostFrameCallback((_) {
                       Navigator.push(
                           context,
                           new MaterialPageRoute(
                               builder: (context) => listadoTask()));
-                    });
-                    if(widget.login) SchedulerBinding.instance.addPostFrameCallback((_) {
-                      Navigator.push(
-                          context,
-                          new MaterialPageRoute(
-                              builder: (context) => HomePage()));
                     });
                     },
                 )
@@ -181,19 +182,14 @@ class _form extends State<formulario> {
           ],
         ));
   }
-  Future<void> crearUsuario(String login,String title,String complete,String date,String comments,String description,String tag,) async {
+  Future<void> crearUsuario(String login,String title,String complete,String date,String comments,String description,String tag) async {
     final taskProvider = Provider.of<TaskProvider>(context,listen: false);
-    final prefs = await SharedPreferences.getInstance();
     int tarea;
     if(complete=="completada"){
       tarea=1;
     }else{
       tarea=2;
     }
-    SharedPreferences.setMockInitialValues({});
-    setState(() {
-      prefs.setString('usuario', login);
-    });
     String params = "${login}&title=${title}&is_completed=${tarea}&due_date=${date}&comments=${comments}&description=${description}&tags=${tag}";
     taskProvider.crearTarea(params);
   }
