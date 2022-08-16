@@ -20,6 +20,13 @@ class TaskProvider extends ChangeNotifier{
   Future<List<Task>> crearTarea(String params) async {
     var service = new TaskServices();
     this.tareas = await service.crear(params);
+    notifyListeners();
+  }
+
+  Future<List<Task>> borrarTarea(String params) async {
+    var service = new TaskServices();
+    this.tareas = await service.borrar(params);
+    notifyListeners();
   }
 
   Future<List<Task>> refreshTask() async {

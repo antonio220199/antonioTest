@@ -24,6 +24,7 @@ class _listadoTaskState extends State<listadoTask> {
         ),
         body: _body(),
         floatingActionButton: FloatingActionButton.extended(
+          heroTag: "agregarBtn",
           onPressed: () {
             SchedulerBinding.instance.addPostFrameCallback((_) {
               Navigator.push(
@@ -68,14 +69,16 @@ Widget _listaTareas(BuildContext context, TaskProvider taskProvider) {
         padding: const EdgeInsets.all(10),
         itemCount: tareas.length,
         itemBuilder: (_, int i){
-          return _card(tareas[i], context);
+          return _card(tareas[i], context,taskProvider);
         },
       );
 
     },
   );
 }
-Widget _card(Task tarea,BuildContext context) {
+Widget _card(Task tarea,BuildContext context,TaskProvider taskProvider) {
+
+  String tareaEliminar = "${tarea.id}?";
   return Container(
     height: 90,
     margin: EdgeInsets.symmetric(vertical: 10),
@@ -86,8 +89,26 @@ Widget _card(Task tarea,BuildContext context) {
           leading: Icon(CupertinoIcons.bag),
           title: Text(tarea.title),
           trailing: FloatingActionButton(
+            heroTag: null,
             child: Icon(Icons.delete),
             backgroundColor: Colors.red,
+            onPressed: () => showDialog(
+              context: context,
+              builder: (BuildContext context) => AlertDialog(
+                title: const Text('Atencion'),
+                content: Text("Deseas eliminar la tarea ${tarea.title}"),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, 'Cancel'),
+                    child: const Text('Cancelar'),
+                  ),
+                  TextButton(
+                    onPressed: () => taskProvider.borrarTarea(tareaEliminar).then((value) => Navigator.pop(context, 'OK')),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
